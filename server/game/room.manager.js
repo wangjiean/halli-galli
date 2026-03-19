@@ -14,13 +14,14 @@ export class RoomManager {
       id: roomId,
       name: options.name || '房间',
       hostId,
-      players: [{ userId: hostId, ready: false, score: 0 }],
-      mode: options.mode || 'timed',
-      timeLimit: options.timeLimit || 120,
-      enableAttack: options.enableAttack !== false,
-      attackRule: options.attackRule || 'classic',
+      players: [{ userId: hostId, ready: false, score: 0, cards: 0 }],
+      maxPlayers: Math.min(options.maxPlayers || 6, 6),
+      enableAnimals: options.enableAnimals !== false,
       status: 'waiting',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      deck: [],
+      centerPile: [],
+      currentPlayerIndex: 0
     };
 
     await db.addRoom(room);
@@ -30,7 +31,7 @@ export class RoomManager {
     return room;
   }
 
-  async joinRoom(roomId, userId) {
+  async joinRoom(roomId, userId, playerName) {
     const room = await db.getRoomById(roomId);
     if (!room) {
       throw new Error('房间不存在');
@@ -38,14 +39,21 @@ export class RoomManager {
     if (room.status !== 'waiting') {
       throw new Error('房间已开始游戏');
     }
-    if (room.players.length >= 2) {
-      throw new Error('房间已满');
+    if (room.players.length >= room.maxPlayers) {
+      throw new Error(`房间已满 (最大${room.maxPlayers}人)`);
     }
     if (room.players.find(p => p.userId === userId)) {
       throw new Error('已在房间中');
     }
 
-    room.players.push({ userId, ready: false, score: 0 });
+    room.players.push({ 
+      userId, 
+      name: playerName || `Player${room.players.length + 1}`,
+      ready: false, 
+      score: 0,
+      cards: 0,
+      hand: []
+    });
     await db.updateRoom(roomId, room);
     this.rooms.set(roomId, room);
     this.playerRooms.set(userId, roomId);
@@ -99,7 +107,7 @@ export class RoomManager {
     return room;
   }
 
-  async startGame(roomId) {
+  async startGame(roomId, deck) {
     const room = await db.getRoomById(roomId);
     if (!room) throw new Error('房间不存在');
     if (room.players.length < 2) throw new Error('人数不足');
@@ -107,20 +115,35 @@ export class RoomManager {
 
     room.status = 'playing';
     room.startedAt = new Date().toISOString();
-    room.seed = Math.floor(Math.random() * 2147483647) + 1;
+    room.deck = deck;
+    room.centerPile = [];
+    room.currentPlayerIndex = 0;
+    
+    const cardsPerPlayer = Math.floor(deck.length / room.players.length);
+    let cardIndex = 0;
+    
+    room.players.forEach((player) => {
+      player.hand = deck.slice(cardIndex, cardIndex + cardsPerPlayer);
+      player.cards = player.hand.length;
+      cardIndex += cardsPerPlayer;
+    });
+    
+    room.deck = deck.slice(cardIndex);
+
     await db.updateRoom(roomId, room);
     this.rooms.set(roomId, room);
 
     return room;
   }
 
-  async updatePlayerScore(roomId, userId, score) {
+  async updatePlayerCards(roomId, userId, cards) {
     const room = await db.getRoomById(roomId);
     if (!room) return null;
 
     const player = room.players.find(p => p.userId === userId);
     if (player) {
-      player.score = score;
+      player.cards = cards;
+      player.hand = cards;
       await db.updateRoom(roomId, room);
       this.rooms.set(roomId, room);
     }
@@ -128,14 +151,43 @@ export class RoomManager {
     return room;
   }
 
-  async endGame(roomId) {
+  async nextTurn(roomId) {
+    const room = await db.getRoomById(roomId);
+    if (!room || room.status !== 'playing') return null;
+
+    room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
+    await db.updateRoom(roomId, room);
+    this.rooms.set(roomId, room);
+    return room;
+  }
+
+  async endGame(roomId, winnerId) {
+    const room = await db.getRoomById(roomId);
+    if (!room) return null;
+
+    room.status = 'finished';
+    room.winnerId = winnerId;
+    room.endedAt = new Date().toISOString();
+
+    await db.updateRoom(roomId, room);
+    this.rooms.set(roomId, room);
+    return room;
+  }
+
+  async resetGame(roomId) {
     const room = await db.getRoomById(roomId);
     if (!room) return null;
 
     room.status = 'waiting';
+    room.deck = [];
+    room.centerPile = [];
+    room.currentPlayerIndex = 0;
+    room.winnerId = null;
+    
     for (const player of room.players) {
       player.ready = false;
-      player.score = 0;
+      player.hand = [];
+      player.cards = 0;
     }
 
     await db.updateRoom(roomId, room);
