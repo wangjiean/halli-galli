@@ -107,13 +107,36 @@ const availableRooms = ref([]);
 const loading = ref(false);
 
 onMounted(async () => {
+  console.log('[Lobby] 页面加载，检查 Socket 状态');
+  
+  // 尝试建立连接
   if (!socketStore.connected && !socketStore.connecting) {
     console.log('[Lobby] Socket 未连接，开始连接...');
     socketStore.connect(authStore.token);
   }
   
-  try {
-    await socketStore.waitForConnection(3000);
+  // 等待连接，增加重试
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts && !socketStore.connected) {
+    try {
+      console.log(`[Lobby] 等待 Socket 连接 (尝试 ${attempts + 1}/${maxAttempts})`);
+      await socketStore.waitForConnection(3000);
+      break;
+    } catch (err) {
+      attempts++;
+      console.warn(`[Lobby] Socket 连接超时，重试 ${attempts}/${maxAttempts}`);
+      
+      if (attempts < maxAttempts) {
+        // 断开重连
+        socketStore.disconnect();
+        socketStore.connect(authStore.token);
+      }
+    }
+  }
+  
+  if (socketStore.connected) {
     console.log('[Lobby] Socket 已连接，刷新房间列表');
     refreshRooms();
     
@@ -126,8 +149,8 @@ onMounted(async () => {
       console.log('[Lobby] 收到房间删除事件:', roomId);
       availableRooms.value = availableRooms.value.filter(r => r.id !== roomId);
     });
-  } catch (err) {
-    console.error('[Lobby] Socket 连接超时:', err);
+  } else {
+    console.error('[Lobby] Socket 连接失败，显示错误');
     message.error('网络连接失败，请刷新页面重试');
   }
 });
@@ -158,10 +181,28 @@ async function createRoom() {
     return;
   }
 
+  console.log('[Lobby] 尝试创建房间，Socket 状态:', {
+    connected: socketStore.connected,
+    connecting: socketStore.connecting,
+    hasSocket: !!socketStore.socket
+  });
+
   if (!socketStore.connected) {
-    message.error('网络未连接，请稍后重试');
-    console.error('[Lobby] Socket 未连接，无法创建房间');
-    return;
+    console.error('[Lobby] Socket 未连接，尝试重连...');
+    message.warning('网络连接中，请稍候...');
+    
+    // 尝试重连
+    socketStore.disconnect();
+    socketStore.connect(authStore.token);
+    
+    try {
+      await socketStore.waitForConnection(5000);
+      console.log('[Lobby] 重连成功');
+    } catch (err) {
+      message.error('网络连接失败，请刷新页面重试');
+      console.error('[Lobby] 重连失败:', err);
+      return;
+    }
   }
 
   const options = {
@@ -182,7 +223,8 @@ async function createRoom() {
   });
   
   if (!success) {
-    message.error('发送请求失败');
+    message.error('发送请求失败，请重试');
+    console.error('[Lobby] 发送 room:create 事件失败');
   }
 }
 

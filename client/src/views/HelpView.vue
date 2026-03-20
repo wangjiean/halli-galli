@@ -83,16 +83,10 @@
       <n-card title="🔔 按铃规则">
         <n-space vertical>
           <n-alert type="success" title="正确按铃">
-            <template #icon>
-              <n-icon><CheckCircleOutline /></n-icon>
-            </template>
-            <p>满足条件时按铃 → 赢得中央所有牌</p>
+            <p>✅ 满足条件时按铃 → 赢得中央所有牌</p>
           </n-alert>
           <n-alert type="error" title="错误按铃">
-            <template #icon>
-              <n-icon><CloseCircleOutline /></n-icon>
-            </template>
-            <p>不满足条件时按铃 → <strong>被罚 1 张牌给对手</strong></p>
+            <p>❌ 不满足条件时按铃 → <strong>被罚 1 张牌给对手</strong></p>
           </n-alert>
           <n-alert type="warning" title="冷却时间">
             <p>按铃后有 0.2 秒冷却时间，无法连续按铃</p>
@@ -185,7 +179,6 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { CheckCircleOutline, CloseCircleOutline } from '@vicons/ionicons5';
 
 const router = useRouter();
 </script>

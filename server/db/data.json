@@ -2869,6 +2869,86 @@
       "battlesWon": 0,
       "battlesLost": 0,
       "createdAt": "2026-03-20T09:17:25.208Z"
+    },
+    {
+      "id": "0c3cd6c9-7dd5-488a-bbd9-44f9e6e06404",
+      "username": "socket_s1e6b2",
+      "passwordHash": "$2a$10$Gqdunqqp1YrxzjfaYUg3TOMQI7sv4l8xlBFTUc4W1h/d.wbacO4N2",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:35:51.763Z"
+    },
+    {
+      "id": "e0242482-793d-41a1-9323-22364e4fb69f",
+      "username": "reconnect_gq6md4",
+      "passwordHash": "$2a$10$u50HeRpP8ZrL8h29gVntwOS9rEjK4.2EhXf2rVw7.g/rx37jKzmf.",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:35:55.471Z"
+    },
+    {
+      "id": "cfa0f2ac-affd-4af4-a629-cd6554b28785",
+      "username": "p1_wj5gf9",
+      "passwordHash": "$2a$10$SFyhnQLG8dIRL8fGuiN61O7BrPOhcK.qveMlN1nlFPXD6VfoNIYWi",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:35:59.237Z"
+    },
+    {
+      "id": "d3144426-1abd-4e16-920d-9ad2d3377d28",
+      "username": "p2_dxh0l3",
+      "passwordHash": "$2a$10$ybg8PHmsTjw9qU5H6efBu.2RGyePJVTJLOLHIdptoJd92uU.pw802",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:35:59.670Z"
+    },
+    {
+      "id": "fe423e0e-f91f-40b9-aeef-58f17bfd6657",
+      "username": "empty_ul75qh",
+      "passwordHash": "$2a$10$/vkFazgYU55Qe594Jh247e9aSqKsYaeiNtSUQ.8RgBKj0vD2GeZZi",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:36:13.521Z"
+    },
+    {
+      "id": "0843158e-a44d-422a-be38-138d9de71f3f",
+      "username": "extreme_j9hrbn",
+      "passwordHash": "$2a$10$Wgx/V31pRzCw7KqWCZhBYeAG5zfRKPZcCgUotc/1Le/EKeecxPdk2",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:36:28.770Z"
+    },
+    {
+      "id": "b79d89e4-9eec-4170-ba5d-ca0584b8a779",
+      "username": "host_s8kj9p",
+      "passwordHash": "$2a$10$6JW7zTGGdJYAQggnIfyy7e/lPvTprfCmvyXkvy17pM9QBHJ5nwPyy",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:36:33.454Z"
+    },
+    {
+      "id": "c4bbf702-a32d-4f42-9fbb-e111b64666e8",
+      "username": "help_ay39ap",
+      "passwordHash": "$2a$10$7xHjIypPPFApBYHx6sqjruqahHaqMd4SsD3l9ysQyT2du0xESoipa",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T09:36:47.203Z"
     }
   ],
   "rooms": [
