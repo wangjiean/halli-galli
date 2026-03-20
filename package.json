@@ -10,7 +10,13 @@
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "start": "node server/index.js",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "test:auth": "npx playwright test halli-galli-auth",
+    "test:rooms": "npx playwright test halli-galli-rooms",
+    "test:gameplay": "npx playwright test halli-galli-gameplay",
+    "test:bell": "npx playwright test halli-galli-bell",
+    "test:leaderboard": "npx playwright test halli-galli-leaderboard",
+    "test:all": "npx playwright test halli-galli"
   },
   "keywords": [
     "halli-galli",

@@ -19,19 +19,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/single',
-    name: 'Single',
-    component: () => import('../views/SingleView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/lobby',
     name: 'Lobby',
     component: () => import('../views/LobbyView.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/battle',
+    path: '/battle/:roomId',
     name: 'Battle',
     component: () => import('../views/BattleView.vue'),
     meta: { requiresAuth: true }

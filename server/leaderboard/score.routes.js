@@ -6,9 +6,10 @@ const router = Router();
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { score } = req.body;
-    if (typeof score !== 'number' || score < 0) {
-      return res.status(400).json({ success: false, error: '无效分数' });
+    const { result } = req.body;
+    
+    if (!result || !['win', 'loss'].includes(result)) {
+      return res.status(400).json({ success: false, error: '无效结果' });
     }
 
     const user = await db.getUserById(req.user.userId);
@@ -16,14 +17,13 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, error: '用户不存在' });
     }
 
-    const isNewRecord = score > (user.highScore || 0);
     const updates = {
-      highScore: isNewRecord ? score : user.highScore,
-      gamesPlayed: (user.gamesPlayed || 0) + 1
+      gamesPlayed: (user.gamesPlayed || 0) + 1,
+      wins: (user.wins || 0) + (result === 'win' ? 1 : 0)
     };
 
     await db.updateUser(req.user.userId, updates);
-    res.json({ success: true, isNewRecord });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

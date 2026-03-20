@@ -1,6 +1,58 @@
 import { socketAuthMiddleware } from '../auth/auth.middleware.js';
 import RoomManager from './room.manager.js';
 import { db } from '../db/store.js';
+import validateBell from './bell.validator.js';
+import generateDeck from './deck.js';
+
+const BELL_COOLDOWN_MS = 200;
+const MIN_REACTION_TIME_MS = 100;
+
+const playerBellHistory = new Map();
+
+function getPlayerBellHistory(playerId) {
+  if (!playerBellHistory.has(playerId)) {
+    playerBellHistory.set(playerId, []);
+  }
+  return playerBellHistory.get(playerId);
+}
+
+function checkBellRateLimit(playerId, timestamp) {
+  const history = getPlayerBellHistory(playerId);
+  const now = Date.now();
+  
+  history.push(timestamp);
+  
+  const recentBells = history.filter(t => now - t < BELL_COOLDOWN_MS);
+  
+  if (recentBells.length > 1) {
+    history.filter(t => now - t < 1000);
+    return {
+      allowed: false,
+      reason: '按铃过于频繁'
+    };
+  }
+  
+  history.filter(t => now - t < 1000);
+  
+  return { allowed: true };
+}
+
+function validateReactionTime(cardPlayedTime, bellTime) {
+  const reactionTime = bellTime - cardPlayedTime;
+  
+  if (reactionTime < MIN_REACTION_TIME_MS) {
+    return {
+      valid: false,
+      reason: '反应时间异常',
+      reactionTime
+    };
+  }
+  
+  return {
+    valid: true,
+    reactionTime
+  };
+}
 
 export function setupSocketHandlers(io, roomManager) {
   io.use(socketAuthMiddleware);
@@ -10,6 +62,7 @@ export function setupSocketHandlers(io, roomManager) {
 
     socket.on('disconnect', () => {
       console.log(`用户断开：${socket.user.username}`);
+      playerBellHistory.delete(socket.user.userId);
       handleDisconnect(socket, roomManager);
     });
 
@@ -72,15 +125,17 @@ export function setupSocketHandlers(io, roomManager) {
           throw new Error('只有房主可以开始游戏');
         }
 
-        const updatedRoom = await roomManager.startGame(roomId, updatedRoom.deck);
-        io.to(roomId).emit('room:updated', updatedRoom);
+        const deck = generateDeck(room.enableAnimals);
+        const startedRoom = await roomManager.startGame(roomId, deck);
+        
+        io.to(roomId).emit('room:updated', startedRoom);
         io.to(roomId).emit('game:start', {
-          roomId: updatedRoom.id,
-          enableAnimals: updatedRoom.enableAnimals,
-          players: updatedRoom.players,
-          currentPlayerIndex: updatedRoom.currentPlayerIndex
+          roomId: startedRoom.id,
+          enableAnimals: startedRoom.enableAnimals,
+          players: startedRoom.players,
+          currentPlayerIndex: startedRoom.currentPlayerIndex
         });
-        callback({ success: true, room: updatedRoom });
+        callback({ success: true, room: startedRoom });
       } catch (err) {
         callback({ success: false, error: err.message });
       }
@@ -128,13 +183,44 @@ export function setupSocketHandlers(io, roomManager) {
         const room = await roomManager.getRoom(roomId);
         if (!room || room.status !== 'playing') throw new Error('游戏未开始');
 
+        const playerId = socket.user.userId;
+        const bellTimestamp = Date.now();
+        
+        const rateLimitResult = checkBellRateLimit(playerId, bellTimestamp);
+        if (!rateLimitResult.allowed) {
+          return callback({ 
+            success: false, 
+            error: rateLimitResult.reason 
+          });
+        }
+
+        let reactionTimeValidation = { valid: true };
+        if (bellData?.cardPlayedTime && room.centerPile.length > 0) {
+          reactionTimeValidation = validateReactionTime(bellData.cardPlayedTime, bellTimestamp);
+          if (!reactionTimeValidation.valid) {
+            return callback({ 
+              success: false, 
+              error: reactionTimeValidation.reason 
+            });
+          }
+        }
+
+        const bellValidation = validateBell(room.centerPile, room.enableAnimals);
+
         io.to(roomId).emit('game:bell-rung', {
-          playerId: socket.user.userId,
-          timestamp: Date.now(),
-          centerPile: room.centerPile
+          playerId,
+          timestamp: bellTimestamp,
+          centerPile: room.centerPile,
+          bellValidation,
+          reactionTime: reactionTimeValidation.reactionTime
         });
 
-        callback({ success: true, bellData });
+        callback({ 
+          success: true, 
+          bellData,
+          bellValidation,
+          reactionTime: reactionTimeValidation.reactionTime
+        });
       } catch (err) {
         callback({ success: false, error: err.message });
       }
@@ -158,9 +244,13 @@ export function setupSocketHandlers(io, roomManager) {
             const totalCards = room.players.reduce((sum, p) => sum + p.cards, 0);
             if (winner.cards >= totalCards) {
               await roomManager.endGame(roomId, result.winnerId);
+              
+              const winnerId = result.winnerId;
+              const loserId = room.players.find(p => p.userId !== winnerId)?.userId;
+              
               io.to(roomId).emit('game:over', {
                 roomId,
-                winnerId: result.winnerId,
+                winnerId,
                 winner: winner.name
               });
             } else {

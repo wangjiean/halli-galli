@@ -100,15 +100,24 @@ class Database {
   async getLeaderboard(limit = 50) {
     const users = await this.getUsers();
     return users
-      .filter(u => u.highScore !== undefined)
-      .sort((a, b) => (b.highScore || 0) - (a.highScore || 0))
+      .filter(u => u.wins !== undefined || u.highScore !== undefined)
+      .sort((a, b) => {
+        if (a.wins && b.wins) {
+          return b.wins - a.wins;
+        }
+        return (b.highScore || 0) - (a.highScore || 0);
+      })
       .slice(0, limit)
-      .map((u, i) => ({
-        rank: i + 1,
-        username: u.username,
-        highScore: u.highScore || 0,
-        gamesPlayed: u.gamesPlayed || 0
-      }));
+      .map((u, i) => {
+        const winRate = u.gamesPlayed ? Math.round((u.wins || 0) / u.gamesPlayed * 100) : 0;
+        return {
+          rank: i + 1,
+          username: u.username,
+          wins: u.wins || 0,
+          gamesPlayed: u.gamesPlayed || 0,
+          winRate
+        };
+      });
   }
 }
 
