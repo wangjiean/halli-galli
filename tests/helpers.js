@@ -3,11 +3,10 @@ import { expect } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5173';
 
-// 生成唯一用户名，避免测试间冲突
+// 生成唯一用户名，避免测试间冲突 (max 20 chars)
 export function uniqueUser(prefix = 'test') {
-  const ts = Date.now().toString(36);
-  const rand = Math.random().toString(36).slice(2, 6);
-  return `${prefix}_${ts}${rand}`;
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${prefix.slice(0, 11)}_${rand}`;
 }
 
 // 注册新用户

@@ -149,6 +149,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
 import { useSocketStore } from '../stores/socket';
+import { api } from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -164,8 +165,14 @@ const gameMessage = ref('');
 const messageType = ref('info');
 const bellCooldown = ref(0);
 let bellCooldownTimer = null;
-
 let bellRingTime = null;
+
+const socketListeners = [];
+
+function registerSocketListener(event, callback) {
+  socketStore.socket.on(event, callback);
+  socketListeners.push({ event, callback });
+}
 
 onMounted(() => {
   if (!socketStore.socket) {
@@ -181,32 +188,30 @@ onMounted(() => {
 onUnmounted(() => {
   if (bellCooldownTimer) {
     clearInterval(bellCooldownTimer);
+    bellCooldownTimer = null;
   }
-  socketStore.socket.off('room:updated');
-  socketStore.socket.off('game:start');
-  socketStore.socket.off('game:card-played');
-  socketStore.socket.off('game:bell-rung');
-  socketStore.socket.off('game:bell-success');
-  socketStore.socket.off('game:bell-penalty');
-  socketStore.socket.off('game:over');
-  socketStore.socket.off('room:deleted');
+  
+  socketListeners.forEach(({ event, callback }) => {
+    socketStore.socket.off(event, callback);
+  });
+  socketListeners.length = 0;
 });
 
 function setupSocketListeners() {
-  socketStore.socket.on('room:updated', (updatedRoom) => {
+  registerSocketListener('room:updated', (updatedRoom) => {
     room.value = updatedRoom;
     if (updatedRoom.status === 'playing') {
       updateMyHand();
     }
   });
 
-  socketStore.socket.on('game:start', (gameData) => {
+  registerSocketListener('game:start', (gameData) => {
     room.value = { ...room.value, status: 'playing', currentPlayerIndex: gameData.currentPlayerIndex };
     updateMyHand();
     message.success('游戏开始！');
   });
 
-  socketStore.socket.on('game:card-played', (data) => {
+  registerSocketListener('game:card-played', (data) => {
     room.value.centerPile = data.centerPile;
     room.value.currentPlayerIndex = data.nextPlayerIndex;
     
@@ -217,7 +222,7 @@ function setupSocketListeners() {
     }
   });
 
-  socketStore.socket.on('game:bell-rung', (data) => {
+  registerSocketListener('game:bell-rung', (data) => {
     bellRingTime = data.timestamp;
     if (data.reactionTime) {
       gameMessage.value = `反应时间：${data.reactionTime}ms`;
@@ -226,7 +231,7 @@ function setupSocketListeners() {
     }
   });
 
-  socketStore.socket.on('game:bell-success', (data) => {
+  registerSocketListener('game:bell-success', (data) => {
     room.value.players = data.players;
     updateMyHand();
     
@@ -240,7 +245,7 @@ function setupSocketListeners() {
     setTimeout(() => { gameMessage.value = ''; }, 3000);
   });
 
-  socketStore.socket.on('game:bell-penalty', (data) => {
+  registerSocketListener('game:bell-penalty', (data) => {
     room.value.players = data.players;
     updateMyHand();
     
@@ -254,15 +259,19 @@ function setupSocketListeners() {
     setTimeout(() => { gameMessage.value = ''; }, 3000);
   });
 
-  socketStore.socket.on('game:over', async (data) => {
+  registerSocketListener('game:over', async (data) => {
     const isWin = data.winnerId === authStore.user.id;
     gameResult.value = isWin ? '胜利' : '失败';
     winnerName.value = data.winner;
     
-    await api.post('/scores', { result: isWin ? 'win' : 'loss' });
+    try {
+      await api.post('/scores', { result: isWin ? 'win' : 'loss' });
+    } catch (err) {
+      console.error('Failed to submit score:', err);
+    }
   });
 
-  socketStore.socket.on('room:deleted', () => {
+  registerSocketListener('room:deleted', () => {
     message.info('房间已解散');
     router.push('/');
   });

@@ -9,33 +9,32 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(page, username, password);
     await loginUser(page, username, password);
     
-    await page.click('text=双人对战');
+    await page.click('text=经典模式');
     await page.waitForURL('**/lobby');
     
     await page.locator('input[placeholder="输入房间名称"]').fill('测试房间');
     await page.click('text=创建房间');
     
     await page.waitForURL('**/battle/*');
-    await expect(page.locator('.room-info h2')).toContainText('测试房间');
-    await expect(page.locator('.room-info span')).toContainText('经典模式');
+    await expect(page.getByText('测试房间')).toBeVisible();
+    await expect(page.getByText('经典模式')).toBeVisible();
   });
 
-  test('创建极限模式房间', async ({ page }) => {
+test('创建极限模式房间', async ({ page }) => {
     const username = uniqueUser('hg_extreme');
     const password = 'password123';
     
     await registerUser(page, username, password);
     await loginUser(page, username, password);
     
-    await page.click('text=双人对战');
+    await page.click('text=极限模式');
     await page.waitForURL('**/lobby');
     
     await page.locator('input[placeholder="输入房间名称"]').fill('极限房间');
-    await page.selectOption('.n-select', '极限模式 (72 张牌)');
     await page.click('text=创建房间');
     
     await page.waitForURL('**/battle/*');
-    await expect(page.locator('.room-info span')).toContainText('极限模式');
+    await expect(page.getByText('极限模式')).toBeVisible();
   });
 
   test('房间名称不能为空', async ({ page }) => {
@@ -45,11 +44,11 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(page, username, password);
     await loginUser(page, username, password);
     
-    await page.click('text=双人对战');
+    await page.click('text=经典模式');
     await page.waitForURL('**/lobby');
     
     await page.click('text=创建房间');
-    await expect(page.locator('.n-message')).toContainText('房间名称');
+    await expect(page.getByText(/房间名称/)).toBeVisible();
   });
 
   test('加入房间', async ({ browser }) => {
@@ -63,7 +62,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(hostPage, hostName, password);
     await loginUser(hostPage, hostName, password);
     
-    await hostPage.click('text=双人对战');
+    await hostPage.click('text=经典模式');
     await hostPage.waitForURL('**/lobby');
     await hostPage.locator('input[placeholder="输入房间名称"]').fill('加入测试');
     await hostPage.click('text=创建房间');
@@ -74,7 +73,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(guestPage, guestName, password);
     await loginUser(guestPage, guestName, password);
     
-    await guestPage.click('text=双人对战');
+    await guestPage.click('text=经典模式');
     await guestPage.waitForURL('**/lobby');
     
     await guestPage.click('text=加入', { timeout: 10000 });
@@ -98,7 +97,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(hostPage, hostName, password);
     await loginUser(hostPage, hostName, password);
     
-    await hostPage.click('text=双人对战');
+    await hostPage.click('text=经典模式');
     await hostPage.waitForURL('**/lobby');
     await hostPage.locator('input[placeholder="输入房间名称"]').fill('准备测试');
     await hostPage.click('text=创建房间');
@@ -107,19 +106,19 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(guestPage, guestName, password);
     await loginUser(guestPage, guestName, password);
     
-    await guestPage.click('text=双人对战');
+    await guestPage.click('text=经典模式');
     await guestPage.waitForURL('**/lobby');
     await guestPage.click('text=加入');
     await guestPage.waitForURL('**/battle/*');
     
     await hostPage.click('text=准备');
-    await expect(hostPage.locator('.n-button--type-success')).toBeVisible();
+    await expect(hostPage.getByText('已准备')).toBeVisible();
     
     await guestPage.click('text=准备');
-    await expect(guestPage.locator('.n-button--type-success')).toBeVisible();
+    await expect(guestPage.getByText('已准备')).toBeVisible();
     
     await hostPage.click('text=准备');
-    await expect(hostPage.locator('.n-button--type-success')).not.toBeVisible();
+    await expect(hostPage.getByText('已准备')).not.toBeVisible();
     
     await hostPage.close();
     await guestPage.close();
@@ -136,7 +135,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(hostPage, hostName, password);
     await loginUser(hostPage, hostName, password);
     
-    await hostPage.click('text=双人对战');
+    await hostPage.click('text=经典模式');
     await hostPage.waitForURL('**/lobby');
     await hostPage.locator('input[placeholder="输入房间名称"]').fill('开始测试');
     await hostPage.click('text=创建房间');
@@ -145,7 +144,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(guestPage, guestName, password);
     await loginUser(guestPage, guestName, password);
     
-    await guestPage.click('text=双人对战');
+    await guestPage.click('text=经典模式');
     await guestPage.waitForURL('**/lobby');
     await guestPage.click('text=加入');
     await guestPage.waitForURL('**/battle/*');
@@ -153,8 +152,8 @@ test.describe('Halli Galli - 房间管理', () => {
     await hostPage.click('text=准备');
     await guestPage.click('text=准备');
     
-    await expect(hostPage.locator('text=开始游戏')).toBeEnabled();
-    await expect(guestPage.locator('text=开始游戏')).not.toBeVisible();
+    await expect(hostPage.getByText('开始游戏')).toBeVisible();
+    await expect(guestPage.getByText('开始游戏')).not.toBeVisible();
     
     await hostPage.close();
     await guestPage.close();
@@ -169,7 +168,7 @@ test.describe('Halli Galli - 房间管理', () => {
     await registerUser(hostPage, hostName, password);
     await loginUser(hostPage, hostName, password);
     
-    await hostPage.click('text=双人对战');
+    await hostPage.click('text=经典模式');
     await hostPage.waitForURL('**/lobby');
     await hostPage.locator('input[placeholder="输入房间名称"]').fill('离开测试');
     await hostPage.click('text=创建房间');

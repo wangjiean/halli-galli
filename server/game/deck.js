@@ -7,16 +7,21 @@ const ANIMAL_COUNTS = {
   pig: 2
 };
 
+// Classic mode: 60 cards (4 fruits × 5 counts × 3 each = 60)
+// Each fruit count (1-5) appears 3 times for each fruit
 function createFruitCards() {
   const cards = [];
   
   for (const fruit of FRUITS) {
     for (let count = 1; count <= 5; count++) {
-      cards.push({
-        type: 'fruit',
-        fruit,
-        count
-      });
+      // Each fruit/count combination appears 3 times
+      for (let i = 0; i < 3; i++) {
+        cards.push({
+          type: 'fruit',
+          fruit,
+          count
+        });
+      }
     }
   }
   

@@ -161,97 +161,6 @@ export function setupSocketHandlers(io, roomManager) {
       }
     });
 
-    socket.on('rooms:list', async (callback) => {
-      logger.socket('rooms:list', { userId: socket.user.userId });
-      try {
-        const rooms = await roomManager.getRooms();
-        const availableRooms = rooms.filter(r => 
-          r.status === 'waiting' && 
-          r.players.length < r.maxPlayers
-        );
-        logger.debug(`返回房间列表：${availableRooms.length} 个可用房间`);
-        callback({ success: true, rooms: availableRooms });
-      } catch (err) {
-        logger.error('获取房间列表失败', err.message);
-        callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('room:create', async (options, callback) => {
-      try {
-        const room = await roomManager.createRoom(socket.user.userId, options);
-        socket.join(room.id);
-        callback({ success: true, room });
-      } catch (err) {
-        callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('room:join', async (roomId, playerName, callback) => {
-      try {
-        const room = await roomManager.joinRoom(roomId, socket.user.userId, playerName);
-        socket.join(roomId);
-        io.to(roomId).emit('room:updated', room);
-        callback({ success: true, room });
-      } catch (err) {
-        callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('room:leave', async (callback) => {
-      try {
-        const result = await roomManager.leaveRoom(socket.user.userId);
-        if (result) {
-          const roomId = result.room.id;
-          socket.leave(roomId);
-          if (result.action === 'deleted') {
-            io.to(roomId).emit('room:deleted', roomId);
-          } else {
-            io.to(roomId).emit('room:updated', result.room);
-          }
-        }
-        if (typeof callback === 'function') callback({ success: true });
-      } catch (err) {
-        if (typeof callback === 'function') callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('room:ready', async (callback) => {
-      try {
-        const room = await roomManager.toggleReady(socket.user.userId);
-        io.to(room.id).emit('room:updated', room);
-        if (typeof callback === 'function') callback({ success: true, room });
-      } catch (err) {
-        if (typeof callback === 'function') callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('room:start', async (callback) => {
-      try {
-        const roomId = roomManager.getPlayerRoom(socket.user.userId);
-        if (!roomId) throw new Error('不在房间中');
-        
-        const room = await roomManager.getRoom(roomId);
-        if (room.hostId !== socket.user.userId) {
-          throw new Error('只有房主可以开始游戏');
-        }
-
-        const deck = generateDeck(room.enableAnimals);
-        const startedRoom = await roomManager.startGame(roomId, deck);
-        
-        io.to(roomId).emit('room:updated', startedRoom);
-        io.to(roomId).emit('game:start', {
-          roomId: startedRoom.id,
-          enableAnimals: startedRoom.enableAnimals,
-          players: startedRoom.players,
-          currentPlayerIndex: startedRoom.currentPlayerIndex
-        });
-        callback({ success: true, room: startedRoom });
-      } catch (err) {
-        callback({ success: false, error: err.message });
-      }
-    });
-
     socket.on('game:play-card', async (callback) => {
       try {
         const roomId = roomManager.getPlayerRoom(socket.user.userId);
@@ -398,19 +307,6 @@ export function setupSocketHandlers(io, roomManager) {
         }
 
         callback({ success: true });
-      } catch (err) {
-        callback({ success: false, error: err.message });
-      }
-    });
-
-    socket.on('rooms:list', async (callback) => {
-      try {
-        const rooms = await roomManager.getRooms();
-        const availableRooms = rooms.filter(r => 
-          r.status === 'waiting' && 
-          r.players.length < r.maxPlayers
-        );
-        callback({ success: true, rooms: availableRooms });
       } catch (err) {
         callback({ success: false, error: err.message });
       }
