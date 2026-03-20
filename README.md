@@ -6,7 +6,7 @@
 
 经典的德国心脏病卡牌游戏 - 支持局域网双人对战
 
-**🎮 在线演示**: 即将上线
+**🎮 GitHub**: https://github.com/wangjiean/halli-galli
 
 ---
 
@@ -153,7 +153,8 @@ halli-galli/
 ## 📖 文档
 
 - **[玩家说明](./玩家说明.md)** - 详细的游戏规则和新手教程
-- [需求文档](./需求文档.md) - 技术需求规格
+- **[需求文档](./需求文档.md)** - 技术需求规格
+- **[未完成功能清单](./未完成功能清单.md)** - 功能进度
 
 ---
 
@@ -166,6 +167,7 @@ halli-galli/
 PORT=7779
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=7d
+LOG_LEVEL=INFO
 ```
 
 ### 端口说明
