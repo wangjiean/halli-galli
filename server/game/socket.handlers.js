@@ -74,6 +74,8 @@ export function setupSocketHandlers(io, roomManager) {
       try {
         const room = await roomManager.createRoom(socket.user.userId, options);
         socket.join(room.id);
+        // 通知大厅中的所有玩家
+        io.emit('room:created', room);
         logger.info(`房间创建成功：${room.id} by ${socket.user.username}`);
         callback({ success: true, room });
       } catch (err) {
@@ -91,6 +93,15 @@ export function setupSocketHandlers(io, roomManager) {
         logger.info(`用户加入房间：${socket.user.username} -> ${roomId}`);
         callback({ success: true, room });
       } catch (err) {
+        // 如果用户已在房间中，返回房间信息
+        if (err.message === '已在房间中') {
+          const room = await roomManager.getRoom(roomId);
+          if (room) {
+            logger.info(`用户已在房间中：${socket.user.username} -> ${roomId}`);
+            callback({ success: true, room, alreadyInRoom: true });
+            return;
+          }
+        }
         logger.error('加入房间失败', err.message);
         callback({ success: false, error: err.message });
       }

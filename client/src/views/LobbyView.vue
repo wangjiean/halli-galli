@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
@@ -139,20 +139,28 @@ onMounted(async () => {
   if (socketStore.connected) {
     console.log('[Lobby] Socket 已连接，刷新房间列表');
     refreshRooms();
-    
-    socketStore.on('room:created', (room) => {
-      console.log('[Lobby] 收到新房间创建事件');
-      refreshRooms();
-    });
-    
-    socketStore.on('room:deleted', (roomId) => {
-      console.log('[Lobby] 收到房间删除事件:', roomId);
-      availableRooms.value = availableRooms.value.filter(r => r.id !== roomId);
-    });
   } else {
     console.error('[Lobby] Socket 连接失败，显示错误');
     message.error('网络连接失败，请刷新页面重试');
   }
+  
+  // 注册事件监听器
+  const removeRoomCreatedListener = socketStore.on('room:created', (room) => {
+    console.log('[Lobby] 收到新房间创建事件');
+    refreshRooms();
+  });
+  
+  const removeRoomDeletedListener = socketStore.on('room:deleted', (roomId) => {
+    console.log('[Lobby] 收到房间删除事件:', roomId);
+    availableRooms.value = availableRooms.value.filter(r => r.id !== roomId);
+  });
+  
+  // 页面卸载时清理 Socket 监听器
+  onUnmounted(() => {
+    console.log('[Lobby] 组件卸载，清理 Socket 监听器');
+    removeRoomCreatedListener();
+    removeRoomDeletedListener();
+  });
 });
 
 function refreshRooms() {
@@ -215,13 +223,28 @@ async function createRoom() {
   };
 
   console.log('[Lobby] 创建房间:', options);
+  
+  // 检查 socket 是否存在
+  if (!socketStore.socket) {
+    console.error('[Lobby] Socket 对象不存在');
+    message.error('Socket 未初始化');
+    return;
+  }
+  
   socketStore.socket.emit('room:create', options, async (response) => {
     console.log('[Lobby] 创建房间响应:', response);
     if (response.success) {
       message.success('房间创建成功');
-      router.push(`/battle/${response.room.id}`);
+      console.log('[Lobby] 跳转到:', `/battle/${response.room.id}`);
+      
+      // 延迟跳转，等待服务器完成 room:created 事件广播
+      // 这样可以确保大厅中的其他玩家能看到这个房间
+      setTimeout(() => {
+        router.push(`/battle/${response.room.id}`);
+      }, 500);
     } else {
       message.error(response.error || '创建房间失败');
+      console.error('[Lobby] 创建失败:', response.error);
     }
   });
 }

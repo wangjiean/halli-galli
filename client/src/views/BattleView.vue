@@ -26,7 +26,7 @@
             <n-button 
               :type="player.ready ? 'success' : 'default'" 
               @click="toggleReady" 
-              :disabled="player.userId !== authStore.user.id"
+              :disabled="!authStore.user?.id || player.userId !== authStore.user.id"
             >
               {{ player.ready ? '✓ 已准备' : '准备' }}
             </n-button>
@@ -37,7 +37,7 @@
           </div>
         </div>
 
-        <div v-if="room.players.length >= 2 && room.hostId === authStore.user.id" class="start-section">
+        <div v-if="room.players.length >= 2 && authStore.user?.id && room.hostId === authStore.user.id" class="start-section">
           <n-button 
             type="primary" 
             size="large" 
@@ -149,7 +149,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
 import { useSocketStore } from '../stores/socket';
-import { api } from '../services/api';
+import api from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -181,7 +181,6 @@ onMounted(() => {
   
   const roomId = route.params.roomId;
   joinRoom(roomId);
-  
   setupSocketListeners();
 });
 
@@ -279,10 +278,11 @@ function setupSocketListeners() {
 
 async function joinRoom(roomId) {
   socketStore.socket.emit('room:join', roomId, authStore.user.username, (response) => {
-    if (response.success) {
+    if (response.success && response.room) {
       room.value = response.room;
+      console.log('[Battle] 加入房间成功，玩家数:', response.room.players.length);
     } else {
-      message.error(response.error);
+      message.error(response.error || '加入房间失败');
       router.push('/');
     }
   });

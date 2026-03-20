@@ -88,7 +88,13 @@ export const useSocketStore = defineStore('socket', () => {
   function on(event, callback) {
     if (socket.value) {
       socket.value.on(event, callback);
+      return () => {
+        if (socket.value) {
+          socket.value.off(event, callback);
+        }
+      };
     }
+    return () => {};
   }
 
   function off(event, callback) {
