@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '../services/api';
+import { useSocketStore } from './socket';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));
@@ -15,6 +16,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.user;
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+      
+      console.log('[Auth] 登录成功，建立 Socket 连接');
+      const socketStore = useSocketStore();
+      socketStore.connect(response.token);
     }
     return response;
   }
@@ -25,6 +30,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    console.log('[Auth] 退出登录，断开 Socket 连接');
+    const socketStore = useSocketStore();
+    socketStore.disconnect();
+    
     token.value = null;
     user.value = null;
     localStorage.removeItem('token');

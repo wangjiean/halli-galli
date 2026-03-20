@@ -2279,6 +2279,36 @@
       "battlesWon": 0,
       "battlesLost": 0,
       "createdAt": "2026-03-06T06:41:26.042Z"
+    },
+    {
+      "id": "9b23b29c-b0b1-44a5-83d1-72674b90cfe2",
+      "username": "test",
+      "passwordHash": "$2a$10$rjFi33BwA0bQThHpby9gzO8J4kfeDyg4VyMFwavjqCj4kfRoFHvQe",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T03:23:45.868Z"
+    },
+    {
+      "id": "bd2e1389-89a4-4e1c-82fd-2974220296f7",
+      "username": "testuser123",
+      "passwordHash": "$2a$10$MpwvouO4K4VTMcrqD8N0reUkLLWeTpmCPE8DPRBfanUyWVpQn6Ghq",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T03:26:24.595Z"
+    },
+    {
+      "id": "0208f4bb-e3f2-4806-b32e-49bffe04de02",
+      "username": "hg_auth_mmycjp5719d8",
+      "passwordHash": "$2a$10$5cuzhjKh.aY6zlT0K8eGyub/HoH3YQsRremeecP3LtAVhco2pv4YG",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T03:35:46.319Z"
     }
   ],
   "rooms": [

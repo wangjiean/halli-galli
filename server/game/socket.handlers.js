@@ -3,6 +3,9 @@ import RoomManager from './room.manager.js';
 import { db } from '../db/store.js';
 import validateBell from './bell.validator.js';
 import generateDeck from './deck.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('SocketHandler');
 
 const BELL_COOLDOWN_MS = 200;
 const MIN_REACTION_TIME_MS = 100;
@@ -58,12 +61,120 @@ export function setupSocketHandlers(io, roomManager) {
   io.use(socketAuthMiddleware);
 
   io.on('connection', (socket) => {
-    console.log(`用户连接：${socket.user.username} (${socket.id})`);
+    logger.info(`用户连接：${socket.user.username} (${socket.id})`);
 
     socket.on('disconnect', () => {
-      console.log(`用户断开：${socket.user.username}`);
+      logger.info(`用户断开：${socket.user.username}`);
       playerBellHistory.delete(socket.user.userId);
       handleDisconnect(socket, roomManager);
+    });
+
+    socket.on('room:create', async (options, callback) => {
+      logger.socket('room:create', { userId: socket.user.userId, options });
+      try {
+        const room = await roomManager.createRoom(socket.user.userId, options);
+        socket.join(room.id);
+        logger.info(`房间创建成功：${room.id} by ${socket.user.username}`);
+        callback({ success: true, room });
+      } catch (err) {
+        logger.error('房间创建失败', err.message);
+        callback({ success: false, error: err.message });
+      }
+    });
+
+    socket.on('room:join', async (roomId, playerName, callback) => {
+      logger.socket('room:join', { userId: socket.user.userId, roomId });
+      try {
+        const room = await roomManager.joinRoom(roomId, socket.user.userId, playerName);
+        socket.join(roomId);
+        io.to(roomId).emit('room:updated', room);
+        logger.info(`用户加入房间：${socket.user.username} -> ${roomId}`);
+        callback({ success: true, room });
+      } catch (err) {
+        logger.error('加入房间失败', err.message);
+        callback({ success: false, error: err.message });
+      }
+    });
+
+    socket.on('room:leave', async (callback) => {
+      logger.socket('room:leave', { userId: socket.user.userId });
+      try {
+        const result = await roomManager.leaveRoom(socket.user.userId);
+        if (result) {
+          const roomId = result.room.id;
+          socket.leave(roomId);
+          if (result.action === 'deleted') {
+            io.to(roomId).emit('room:deleted', roomId);
+            logger.info(`房间已解散：${roomId}`);
+          } else {
+            io.to(roomId).emit('room:updated', result.room);
+            logger.info(`用户离开房间：${socket.user.username} 离开 ${roomId}`);
+          }
+        }
+        if (typeof callback === 'function') callback({ success: true });
+      } catch (err) {
+        logger.error('离开房间失败', err.message);
+        if (typeof callback === 'function') callback({ success: false, error: err.message });
+      }
+    });
+
+    socket.on('room:ready', async (callback) => {
+      logger.socket('room:ready', { userId: socket.user.userId });
+      try {
+        const room = await roomManager.toggleReady(socket.user.userId);
+        io.to(room.id).emit('room:updated', room);
+        logger.info(`用户准备状态切换：${socket.user.username}`);
+        if (typeof callback === 'function') callback({ success: true, room });
+      } catch (err) {
+        logger.error('准备状态切换失败', err.message);
+        if (typeof callback === 'function') callback({ success: false, error: err.message });
+      }
+    });
+
+    socket.on('room:start', async (callback) => {
+      logger.socket('room:start', { userId: socket.user.userId });
+      try {
+        const roomId = roomManager.getPlayerRoom(socket.user.userId);
+        if (!roomId) throw new Error('不在房间中');
+        
+        const room = await roomManager.getRoom(roomId);
+        if (room.hostId !== socket.user.userId) {
+          throw new Error('只有房主可以开始游戏');
+        }
+
+        const deck = generateDeck(room.enableAnimals);
+        const startedRoom = await roomManager.startGame(roomId, deck);
+        
+        logger.info(`游戏开始：房间 ${roomId}，模式：${room.enableAnimals ? '极限' : '经典'}`);
+        
+        io.to(roomId).emit('room:updated', startedRoom);
+        io.to(roomId).emit('game:start', {
+          roomId: startedRoom.id,
+          enableAnimals: startedRoom.enableAnimals,
+          players: startedRoom.players,
+          currentPlayerIndex: startedRoom.currentPlayerIndex
+        });
+        callback({ success: true, room: startedRoom });
+      } catch (err) {
+        logger.error('开始游戏失败', err.message);
+        callback({ success: false, error: err.message });
+      }
+    });
+
+    socket.on('rooms:list', async (callback) => {
+      logger.socket('rooms:list', { userId: socket.user.userId });
+      try {
+        const rooms = await roomManager.getRooms();
+        const availableRooms = rooms.filter(r => 
+          r.status === 'waiting' && 
+          r.players.length < r.maxPlayers
+        );
+        logger.debug(`返回房间列表：${availableRooms.length} 个可用房间`);
+        callback({ success: true, rooms: availableRooms });
+      } catch (err) {
+        logger.error('获取房间列表失败', err.message);
+        callback({ success: false, error: err.message });
+      }
     });
 
     socket.on('room:create', async (options, callback) => {

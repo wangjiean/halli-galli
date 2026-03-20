@@ -74,9 +74,18 @@ const socketStore = useSocketStore();
 
 const leaderboard = ref([]);
 
-onMounted(() => {
-  if (!socketStore.socket) {
+onMounted(async () => {
+  if (!socketStore.connected && !socketStore.connecting) {
+    console.log('[Home] Socket 未连接，开始连接...');
     socketStore.connect(authStore.token);
+    
+    try {
+      await socketStore.waitForConnection(3000);
+      console.log('[Home] Socket 连接成功');
+    } catch (err) {
+      console.error('[Home] Socket 连接失败:', err);
+      message.warning('网络连接异常，部分功能可能不可用');
+    }
   }
 });
 

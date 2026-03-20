@@ -163,7 +163,7 @@ const winnerName = ref('');
 const gameMessage = ref('');
 const messageType = ref('info');
 const bellCooldown = ref(0);
-const bellCooldownTimer = ref(null);
+let bellCooldownTimer = null;
 
 let bellRingTime = null;
 

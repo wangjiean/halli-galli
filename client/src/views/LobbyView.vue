@@ -106,26 +106,45 @@ const createForm = reactive({
 const availableRooms = ref([]);
 const loading = ref(false);
 
-onMounted(() => {
-  if (!socketStore.socket) {
+onMounted(async () => {
+  if (!socketStore.connected && !socketStore.connecting) {
+    console.log('[Lobby] Socket 未连接，开始连接...');
     socketStore.connect(authStore.token);
   }
-  refreshRooms();
   
-  socketStore.socket.on('room:created', (room) => {
+  try {
+    await socketStore.waitForConnection(3000);
+    console.log('[Lobby] Socket 已连接，刷新房间列表');
     refreshRooms();
-  });
-  
-  socketStore.socket.on('room:deleted', (roomId) => {
-    availableRooms.value = availableRooms.value.filter(r => r.id !== roomId);
-  });
+    
+    socketStore.on('room:created', (room) => {
+      console.log('[Lobby] 收到新房间创建事件');
+      refreshRooms();
+    });
+    
+    socketStore.on('room:deleted', (roomId) => {
+      console.log('[Lobby] 收到房间删除事件:', roomId);
+      availableRooms.value = availableRooms.value.filter(r => r.id !== roomId);
+    });
+  } catch (err) {
+    console.error('[Lobby] Socket 连接超时:', err);
+    message.error('网络连接失败，请刷新页面重试');
+  }
 });
 
 function refreshRooms() {
+  if (!socketStore.connected) {
+    console.error('[Lobby] Socket 未连接，无法刷新房间列表');
+    message.error('网络未连接');
+    return;
+  }
+  
   loading.value = true;
-  socketStore.socket.emit('rooms:list', (response) => {
+  console.log('[Lobby] 请求房间列表');
+  socketStore.emit('rooms:list', (response) => {
     loading.value = false;
     if (response.success) {
+      console.log('[Lobby] 获取到房间列表:', response.rooms.length);
       availableRooms.value = response.rooms;
     } else {
       message.error(response.error);
@@ -139,20 +158,32 @@ async function createRoom() {
     return;
   }
 
+  if (!socketStore.connected) {
+    message.error('网络未连接，请稍后重试');
+    console.error('[Lobby] Socket 未连接，无法创建房间');
+    return;
+  }
+
   const options = {
     name: createForm.name,
     maxPlayers: createForm.maxPlayers,
     enableAnimals: gameMode.value === 'extreme'
   };
 
-  socketStore.socket.emit('room:create', options, async (response) => {
+  console.log('[Lobby] 创建房间:', options);
+  const success = socketStore.emit('room:create', options, async (response) => {
+    console.log('[Lobby] 创建房间响应:', response);
     if (response.success) {
       message.success('房间创建成功');
       router.push(`/battle/${response.room.id}`);
     } else {
-      message.error(response.error);
+      message.error(response.error || '创建房间失败');
     }
   });
+  
+  if (!success) {
+    message.error('发送请求失败');
+  }
 }
 
 async function joinRoom(roomId) {
