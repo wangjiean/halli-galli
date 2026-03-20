@@ -2989,6 +2989,36 @@
       "battlesWon": 0,
       "battlesLost": 0,
       "createdAt": "2026-03-20T10:33:07.585Z"
+    },
+    {
+      "id": "1685ce89-71f2-48ce-807c-bf97f118752c",
+      "username": "wja2",
+      "passwordHash": "$2a$10$Febo5JdzQKmR4XZUeqwPnun/e6NA5t6gN54y7mZW4sxmeCRp5VaBW",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T11:27:57.671Z"
+    },
+    {
+      "id": "8e641c87-1c05-49aa-acd6-a3737484b5f3",
+      "username": "test_mmytis0z",
+      "passwordHash": "$2a$10$iTXMwDNNzHuLhb/QPYB4eefushox/CXCeULnBcLwY93Yq2bodg9ra",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T11:30:56.863Z"
+    },
+    {
+      "id": "650e4aff-7f0c-486c-94f3-ab8c3501a5b3",
+      "username": "test_mmytjs0n",
+      "passwordHash": "$2a$10$6Yf8WVkhE3hqctZhw.887.6KpQYRJUqJEPhD5VI2Rec9/.vlPVKDS",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T11:31:43.496Z"
     }
   ],
   "rooms": [
@@ -3075,26 +3105,6 @@
       "createdAt": "2026-03-06T03:18:48.474Z",
       "startedAt": "2026-03-06T03:19:01.873Z",
       "seed": 801397901
-    },
-    {
-      "id": "99713722-281b-4189-b1d2-b32f67913434",
-      "name": "12",
-      "hostId": "049e9b88-1e6f-417c-927c-27d403d86aee",
-      "players": [
-        {
-          "userId": "049e9b88-1e6f-417c-927c-27d403d86aee",
-          "ready": false,
-          "score": 0,
-          "cards": 0
-        }
-      ],
-      "maxPlayers": 2,
-      "enableAnimals": false,
-      "status": "waiting",
-      "createdAt": "2026-03-20T10:27:35.293Z",
-      "deck": [],
-      "centerPile": [],
-      "currentPlayerIndex": 0
     }
   ]
 }

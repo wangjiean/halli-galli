@@ -164,13 +164,16 @@ function refreshRooms() {
   
   loading.value = true;
   console.log('[Lobby] 请求房间列表');
-  socketStore.emit('rooms:list', (response) => {
+  
+  // 直接使用 socket.emit 而不是 socketStore.emit
+  socketStore.socket.emit('rooms:list', (response) => {
     loading.value = false;
+    console.log('[Lobby] 收到房间列表响应:', response);
     if (response.success) {
       console.log('[Lobby] 获取到房间列表:', response.rooms.length);
       availableRooms.value = response.rooms;
     } else {
-      message.error(response.error);
+      message.error(response.error || '获取房间列表失败');
     }
   });
 }
@@ -212,7 +215,7 @@ async function createRoom() {
   };
 
   console.log('[Lobby] 创建房间:', options);
-  const success = socketStore.emit('room:create', options, async (response) => {
+  socketStore.socket.emit('room:create', options, async (response) => {
     console.log('[Lobby] 创建房间响应:', response);
     if (response.success) {
       message.success('房间创建成功');
@@ -221,11 +224,6 @@ async function createRoom() {
       message.error(response.error || '创建房间失败');
     }
   });
-  
-  if (!success) {
-    message.error('发送请求失败，请重试');
-    console.error('[Lobby] 发送 room:create 事件失败');
-  }
 }
 
 async function joinRoom(roomId) {

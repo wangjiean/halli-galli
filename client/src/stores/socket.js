@@ -80,7 +80,7 @@ export const useSocketStore = defineStore('socket', () => {
       console.error('[Socket] 未连接，无法发送事件:', event);
       return false;
     }
-    console.log('[Socket] 发送事件:', event);
+    console.log('[Socket] 发送事件:', event, '参数:', args);
     socket.value.emit(event, ...args);
     return true;
   }
