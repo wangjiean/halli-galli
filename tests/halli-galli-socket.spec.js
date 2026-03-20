@@ -44,9 +44,12 @@ test.describe('Halli Galli - Socket 连接和房间创建', () => {
     await page.waitForTimeout(2000);
     
     // 验证大厅加载成功
-    await expect(page.getByRole('heading', { name: '创建房间' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '创建房间' }).first()).toBeVisible();
     await expect(page.getByText('可用房间')).toBeVisible();
     console.log('✅ 大厅加载成功');
+    
+    // 等待房间列表加载
+    await page.waitForTimeout(1000);
     
     console.log('🎮 步骤 4: 创建房间');
     await page.locator('input[placeholder="输入房间名称"]').fill('测试房间');

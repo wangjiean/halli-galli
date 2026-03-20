@@ -161,6 +161,22 @@ export function setupSocketHandlers(io, roomManager) {
       }
     });
 
+    socket.on('rooms:list', async (callback) => {
+      logger.socket('rooms:list', { userId: socket.user.userId });
+      try {
+        const rooms = await roomManager.getRooms();
+        const availableRooms = rooms.filter(r => 
+          r.status === 'waiting' && 
+          r.players.length < r.maxPlayers
+        );
+        logger.debug(`返回房间列表：${availableRooms.length} 个可用房间`);
+        callback({ success: true, rooms: availableRooms });
+      } catch (err) {
+        logger.error('获取房间列表失败', err.message);
+        callback({ success: false, error: err.message });
+      }
+    });
+
     socket.on('game:play-card', async (callback) => {
       try {
         const roomId = roomManager.getPlayerRoom(socket.user.userId);

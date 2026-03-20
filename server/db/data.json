@@ -2949,6 +2949,46 @@
       "battlesWon": 0,
       "battlesLost": 0,
       "createdAt": "2026-03-20T09:36:47.203Z"
+    },
+    {
+      "id": "049e9b88-1e6f-417c-927c-27d403d86aee",
+      "username": "wja1",
+      "passwordHash": "$2a$10$DFq679ddTySDp1ngP7bZ1uieyGgyQYJLc8VcIe/M.wgt8UfYRDaT6",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T10:27:23.279Z"
+    },
+    {
+      "id": "c91a45da-02db-4344-a1b0-f08b1f3fffb0",
+      "username": "socket_yvdpqu",
+      "passwordHash": "$2a$10$FgyeqBD9laFv2XUO5htmnereHv5i3EAc98pUmOguwZaB5iDGPQHIK",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T10:31:06.197Z"
+    },
+    {
+      "id": "5af3d4cd-55a7-4a95-ba8a-223f73065710",
+      "username": "socket_yyghyy",
+      "passwordHash": "$2a$10$2oOlCR0XhIDnYRUSd7V0cOZH.V.KhOVc3moIiU7VzXeNL6pKdqtzq",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T10:31:18.688Z"
+    },
+    {
+      "id": "73100af8-f3b8-46cd-ba44-a7f54383a913",
+      "username": "debug_mmyrgf82",
+      "passwordHash": "$2a$10$BEbi6KYyVDug2lnKsfrMVe98RuSwQO8jmgPf5ESibJXNjyvzHjkxK",
+      "highScore": 0,
+      "gamesPlayed": 0,
+      "battlesWon": 0,
+      "battlesLost": 0,
+      "createdAt": "2026-03-20T10:33:07.585Z"
     }
   ],
   "rooms": [
@@ -3035,6 +3075,26 @@
       "createdAt": "2026-03-06T03:18:48.474Z",
       "startedAt": "2026-03-06T03:19:01.873Z",
       "seed": 801397901
+    },
+    {
+      "id": "99713722-281b-4189-b1d2-b32f67913434",
+      "name": "12",
+      "hostId": "049e9b88-1e6f-417c-927c-27d403d86aee",
+      "players": [
+        {
+          "userId": "049e9b88-1e6f-417c-927c-27d403d86aee",
+          "ready": false,
+          "score": 0,
+          "cards": 0
+        }
+      ],
+      "maxPlayers": 2,
+      "enableAnimals": false,
+      "status": "waiting",
+      "createdAt": "2026-03-20T10:27:35.293Z",
+      "deck": [],
+      "centerPile": [],
+      "currentPlayerIndex": 0
     }
   ]
 }
