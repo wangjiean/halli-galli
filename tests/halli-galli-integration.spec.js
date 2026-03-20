@@ -341,4 +341,29 @@ test.describe('Halli Galli - 完整游戏流程集成测试', () => {
     await expect(desktop.getByText('🔔 Halli Galli')).toBeVisible();
     await desktop.close();
   });
+
+  test('玩家说明：查看游戏规则', async ({ page }) => {
+    const username = uniqueUser('help');
+    const password = 'password123';
+    
+    await registerUser(page, username, password);
+    await loginUser(page, username, password);
+    
+    // 点击玩家说明卡片
+    await page.click('text=玩家说明');
+    await page.waitForURL('**/help');
+    
+    // 验证帮助页面内容
+    await expect(page.getByText('🎮 游戏简介')).toBeVisible();
+    await expect(page.getByText('🍌 经典模式')).toBeVisible();
+    await expect(page.getByText('🐵 极限模式')).toBeVisible();
+    await expect(page.getByText('🔔 按铃规则')).toBeVisible();
+    await expect(page.getByText('🏆 胜负规则')).toBeVisible();
+    await expect(page.getByText('错误按铃')).toBeVisible();
+    await expect(page.getByText('被罚 1 张牌给对手')).toBeVisible();
+    
+    // 验证可以返回
+    await page.click('text=← 返回');
+    await page.waitForURL('**/');
+  });
 });

@@ -31,6 +31,12 @@
           <h2>排行榜</h2>
           <p>查看高手排名</p>
         </n-card>
+
+        <n-card class="mode-card help" hoverable @click="router.push('/help')">
+          <div class="mode-icon">📖</div>
+          <h2>玩家说明</h2>
+          <p>游戏规则和新手教程</p>
+        </n-card>
       </div>
 
       <div v-if="leaderboard.length > 0" class="leaderboard-section">
@@ -202,6 +208,10 @@ function handleLogout() {
 
 .leaderboard h2 {
   color: #18a058;
+}
+
+.help h2 {
+  color: #2080f0;
 }
 
 .mode-card p {

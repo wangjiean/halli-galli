@@ -29,6 +29,12 @@ const routes = [
     name: 'Battle',
     component: () => import('../views/BattleView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/help',
+    name: 'Help',
+    component: () => import('../views/HelpView.vue'),
+    meta: { requiresAuth: true }
   }
 ];
 
